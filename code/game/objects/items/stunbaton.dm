@@ -177,8 +177,26 @@
 		priority_announce("[L] has been arrested for 300 seconds")
 		to_chat(L,"You have been arrested for 300 seconds")
 		if(L != user)
-			to_chat(user,"You have arrested [L] for 300 seconds")
-
+			to_chat(user,"You have arrested [L] for 300 seconds")		
+		addtimer(CALLBACK(src, .proc/remove_from_jail, L), 300 SECONDS)
+		return TRUE
+	return FALSE
+			
+/obj/item/melee/baton/proc/remove_from_jail(mob/living/L)
+	var/list/validturfs = list() //Find all open arrival turfs so we can pick from them later
+	for(var/area/hallway/secondary/entry/E in SSmapping.areas_in_z["[SSmapping.station_start]"])
+		for(var/turf/open/floor/F in E.contents)
+			validturfs += F	
+	if(!LAZYLEN(validturfs))//If there are no open turfs left in arrivals, just throw them in the hallway
+		for(var/area/hallway/primary/P in SSmapping.areas_in_z["[SSmapping.station_start]"])
+			for(var/turf/open/floor/F in P.contents)
+				validturfs += F
+	if(LAZYLEN(validturfs))
+		var/turf/newturf = pick(validturfs)
+		L.loc = newturf
+		return TRUE
+	return FALSE
+		
 /obj/item/melee/baton/proc/clumsy_check(mob/living/carbon/human/user)
 	if(turned_on && HAS_TRAIT(user, TRAIT_CLUMSY) && prob(50))
 		playsound(src, stun_sound, 75, TRUE, -1)
